@@ -26,10 +26,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",
-#     "http://127.0.0.1:3000",
-# ]
+CORS_ALLOWED_ORIGINS = [
+    'https://projet-app-web-bassoum-kouyate-hernandez-eieb.onrender.com'
+]
 
 STORAGES = {
     "default": {
