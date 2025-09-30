@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User, Player, SeasonStats, ReportAdmin , Participation
+from .models import User, Player, SeasonStats, ReportAdmin , Participation, Event
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+
 User = get_user_model()
+
 # ------------------------
 # User Serializer
 # ------------------------
@@ -67,7 +69,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         email = validated_data['email']
-        role = validated_data.get('role', 'player') 
+        role = validated_data.get('role', 'player')
         username_base = email.split('@')[0]
         username = username_base
         i = 1
@@ -192,7 +194,7 @@ class UnapprovedUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'username', 'role', 'is_approved']
         read_only_fields = ['id', 'email', 'username', 'role', 'is_approved']
-        
+
 # ------------------------
 # SeasonStats Serializer
 # ------------------------
@@ -227,7 +229,7 @@ class ReportAdminSerializer(serializers.ModelSerializer):
         model = ReportAdmin
         fields = '__all__'
         read_only_fields = ['created_by_admin', 'created_at', 'updated_at']
-        
+
 # ------------------------
 # Participation Serializer
 # ------------------------
@@ -266,3 +268,8 @@ class ParticipationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
         return data
 
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']

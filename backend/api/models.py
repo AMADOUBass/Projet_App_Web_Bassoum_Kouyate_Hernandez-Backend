@@ -110,7 +110,6 @@ class User(AbstractUser, TimestampedModel):
 # Player Model
 # -------------------------------
 
-
 class Player(TimestampedModel):
     """Player model representing a player in the system."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -146,7 +145,7 @@ class PlayerProfile(TimestampedModel):
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # in cm
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # in kg
     position = models.CharField(max_length=30, blank=True)
-    
+
     def __str__(self):
         return f"Profile of {self.user.get_full_name() or self.user.email}"
 
@@ -187,7 +186,7 @@ class Event(TimestampedModel):
     date_event = models.DateTimeField()
     location = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    opponent = models.JSONField(default=dict, blank=True) 
+    opponent = models.JSONField(default=dict, blank=True)
     is_cancelled = models.BooleanField(default=False)
     participants = models.ManyToManyField('Player', through='Participation', related_name='events', blank=True)
 
@@ -239,7 +238,7 @@ class ReportAdmin(TimestampedModel):
     def __str__(self):
         reporter_email = self.created_by_admin.email if self.created_by_admin else "Unknown"
         return f"{self.title} ({self.reporter_type}) by {reporter_email}"
-    
+
 # -------------------------------
 # SeasonStats Model
 # -------------------------------

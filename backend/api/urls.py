@@ -13,6 +13,8 @@ from .views import (
     PlayerProfileView, PlayerParticipationUpdateView, MyParticipationsView,
     MySeasonStatsView,
 
+    #Event
+    EventListCreateView, EventRetrieveUpdateDestroyView
 )
 
 urlpatterns = [
@@ -43,4 +45,10 @@ urlpatterns = [
     path('player/participation/<uuid:pk>/', PlayerParticipationUpdateView.as_view(), name='player_participation_update'),
     path('player/my-participations/', MyParticipationsView.as_view(), name='my_participations'),
     path('player/my-season-stats/', MySeasonStatsView.as_view(), name='my_season_stats'),
+
+    # ------------------------
+    # 📅 Events routes
+    # ------------------------
+    path('events/', EventListCreateView.as_view(), name='event-list-create'),
+    path('events/<uuid:pk>/', EventRetrieveUpdateDestroyView.as_view(), name='event-detail'),
 ]
