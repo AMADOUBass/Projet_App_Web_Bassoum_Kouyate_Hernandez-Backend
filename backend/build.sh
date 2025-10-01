@@ -19,4 +19,5 @@ if not User.objects.filter(email='$DJANGO_SUPERUSER_EMAIL').exists():
 "
 fi
 echo "Superuser created with email: $DJANGO_SUPERUSER_EMAIL"
+echo "Superuser created with mdp: $DJANGO_SUPERUSER_PASSWORD"
 
