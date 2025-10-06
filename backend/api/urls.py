@@ -17,10 +17,10 @@ from .views import (
     # EventListCreateView, EventRetrieveUpdateDestroyView,
     
     # Ajax Validation
-    validate_password, validate_login, validate_email
+    validate_password, validate_login, validate_email,
 
     #Event
-    EventListCreateView, EventRetrieveUpdateDestroyView
+    EventListCreateView, EventRetrieveUpdateDestroyView,
 )
 
 urlpatterns = [
@@ -51,6 +51,13 @@ urlpatterns = [
     path('player/participation/<uuid:pk>/', PlayerParticipationUpdateView.as_view(), name='player_participation_update'),
     path('player/my-participations/', MyParticipationsView.as_view(), name='my_participations'),
     path('player/my-season-stats/', MySeasonStatsView.as_view(), name='my_season_stats'),
+    
+    # ------------------------
+    # 🧪 Validation Ajax routes
+    # ------------------------
+    path("auth/validate-password/", validate_password, name="validate_password"),
+    path("auth/validate-login/", validate_login, name="validate_login"),
+    path("auth/validate-email/", validate_email, name="validate_email"),
 
     # ------------------------
     # 📅 Events routes
