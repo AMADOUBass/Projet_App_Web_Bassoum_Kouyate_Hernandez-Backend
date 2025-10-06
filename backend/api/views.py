@@ -1,6 +1,8 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from .permissions import RoleBasedAccess
+import re
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -80,10 +82,11 @@ class ApproveUserView(APIView):
     admin_only = True
 
     def post(self, request, user_id):
-        user_to_approve = get_object_or_404(User, id=user_id, is_approved=False)
+        user_to_approve = get_object_or_404(User, id=user_id)
         if user_to_approve.is_active:
             return Response({"detail": "L'utilisateur est déjà actif."}, status=status.HTTP_400_BAD_REQUEST)
-
+        if user_to_approve.is_approved:
+            return Response({"detail": "L'utilisateur est déjà approuvé."}, status=status.HTTP_400_BAD_REQUEST)
         try:
             approve_user(user_to_approve, request.user)
         except PermissionError as e:

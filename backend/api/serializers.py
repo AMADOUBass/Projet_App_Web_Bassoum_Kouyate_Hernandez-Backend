@@ -29,6 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
+        validated_data.pop('role', None)  # Ignorer le rôle fourni
         user = User(**validated_data)
         if password:
             user.set_password(password)
@@ -54,7 +55,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'role']
+        fields = ['email', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_email(self, value):
@@ -62,10 +63,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Cet email est déjà utilisé.")
         return value
 
-    def validate_role(self, value):
-        if value not in ['player', 'admin']:
-            raise serializers.ValidationError("Rôle invalide.")
-        return value
+    # def validate_role(self, value):
+    #     if value not in ['player', 'admin']:
+    #         raise serializers.ValidationError("Rôle invalide.")
+    #     return value
 
     def create(self, validated_data):
         email = validated_data['email']
@@ -77,84 +78,81 @@ class RegisterSerializer(serializers.ModelSerializer):
             username = f"{username_base}{i}"
             i += 1
 
-        if role == 'admin':
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=validated_data['password'],
-                role='admin',
-                is_active=True,
-                is_approved=True,
-                is_staff=True,
-                is_superuser=True
-            )
-        else:
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=validated_data['password'],
-                role='player',
-                is_active=False,
-                is_approved=False,
-                is_staff=False,
-                is_superuser=False
-            )
+        # Création du compte avec rôle 'player' par défaut
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            role='player',  # ✅ rôle attribué automatiquement
+            is_active=False,
+            is_approved=False,
+            is_staff=False,
+            is_superuser=False
+        )
         return user
 
 # ------------------------
 # JWT Token Serializer
 # ------------------------
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        token['role'] = user.role
-        token['email'] = user.email
+        token["role"] = user.role
+        token["email"] = user.email
         return token
 
     def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
+        email = attrs.get("email", "").strip().lower()
+        password = attrs.get("password", "")
 
-        # Nettoyage email
-        if isinstance(email, list):
-            email = email[0]
-        try:
-            validate_email(email)
-        except ValidationError:
-            raise serializers.ValidationError("L'adresse e-mail n'est pas valide.")
+        errors = {}
 
+        # ✅ Champs vides
+        if not email:
+            errors["email"] = "L'email est requis."
+        elif not re.fullmatch(EMAIL_REGEX, email):
+            errors["email"] = "Format d'email invalide."
+
+        if not password:
+            errors["password"] = "Le mot de passe est requis."
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        # ✅ Email existant
         try:
             user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("L'utilisateur avec cet email n'existe pas.")
+        except User.DoesNotExist as exc:
+            print("❌ Email introuvable")
+            raise serializers.ValidationError({"password": "Les identifiants sont invalides."}) from exc
 
         if not user.check_password(password):
-            raise serializers.ValidationError("Mot de passe incorrect.")
-        if not user.is_active:
-            raise serializers.ValidationError("Le compte utilisateur n'est pas actif.")
-        if not user.is_approved:
-            if user.role == 'player':
-                raise serializers.ValidationError("Ton compte joueur est en attente d'approbation par un administrateur.")
-            elif user.role == 'admin':
-                raise serializers.ValidationError("Ce compte administrateur n'est pas encore activé. Contacte le support.")
-            else:
-                raise serializers.ValidationError("Ce compte n'est pas encore approuvé.")
+            print("❌ Mot de passe incorrect")
+            raise serializers.ValidationError({"password": "Mot de passe incorrect."})
 
-        # Génération des tokens
+        if not user.is_active:
+            print("❌ Compte inactif")
+            raise serializers.ValidationError({"email": "Le compte utilisateur n'est pas actif."})
+
+        if not user.is_approved:
+            print("❌ Compte non approuvé")
+            raise serializers.ValidationError({"email": "Le compte n'est pas encore approuvé."})
+
+        # ✅ Génération des tokens
         refresh = self.get_token(user)
         access = refresh.access_token
 
-        data = {
-            'refresh': str(refresh),
-            'access': str(access),
-            'expires_in': access.lifetime.total_seconds(),
-            'email': user.email,
-            'role': user.role,
-            'id': str(user.id),
+        return {
+            "refresh": str(refresh),
+            "access": str(access),
+            "role": user.role,
+            "email": user.email,
+            "id": str(user.id),
+            "expires_in": access.lifetime.total_seconds(),
         }
-
-        return data
+        
 
 # ------------------------
 # Player Serializer
