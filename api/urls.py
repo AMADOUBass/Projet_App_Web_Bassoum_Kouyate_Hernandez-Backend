@@ -12,12 +12,12 @@ from .views import (
     # Player
     PlayerProfileView, PlayerParticipationUpdateView, MyParticipationsView,
     MySeasonStatsView,
-    
+
     # Public
     # EventListCreateView, EventRetrieveUpdateDestroyView,
-    
+
     # Ajax Validation
-    validate_password, validate_login, validate_email
+   # validate_password, validate_login, validate_emai,
 
     #Event
     EventListCreateView, EventRetrieveUpdateDestroyView
