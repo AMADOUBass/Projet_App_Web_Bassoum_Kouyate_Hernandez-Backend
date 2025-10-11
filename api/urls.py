@@ -13,10 +13,13 @@ from .views import (
     PlayerProfileView, PlayerParticipationUpdateView, MyParticipationsView,
     MySeasonStatsView,
 
+<<<<<<< Updated upstream
     # Public
     # EventListCreateView, EventRetrieveUpdateDestroyView,
 
 
+=======
+>>>>>>> Stashed changes
     # Ajax Validation
    # validate_password, validate_login, validate_emai,
 

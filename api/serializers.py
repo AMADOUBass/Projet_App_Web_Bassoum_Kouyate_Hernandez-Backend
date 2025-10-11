@@ -197,7 +197,10 @@ class UnapprovedUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'username', 'role', 'is_approved']
         read_only_fields = ['id', 'email', 'username', 'role', 'is_approved']
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 # ------------------------
 # SeasonStats Serializer
 # ------------------------
@@ -233,7 +236,10 @@ class ReportAdminSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['created_by_admin', 'created_at', 'updated_at']
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 # ------------------------
 # Participation Serializer
 # ------------------------
@@ -276,7 +282,10 @@ class ParticipationSerializer(serializers.ModelSerializer):
 # ------------------------
 # Event Serializer
 # ------------------------
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
