@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils import timezone
 
 # from .managers import UserManager
@@ -197,11 +197,21 @@ class Event(TimestampedModel):
         permissions = [
             ("can_manage_events", "Can create, update, delete events"),
         ]
-    def save (self, *args, **kwargs):
+
+    def clean(self):
+        """Effectue les validations avant la sauvegarde."""
         if self.event_type in ['Match', 'Tournoi', 'Amical'] and not self.opponent:
-            raise ValueError("Les événements de type Match, Tournoi ou Amical doivent avoir un adversaire.")
-        if self.date_event and self.date_event < timezone.now():
-            raise ValueError("La date de l'événement ne peut pas être dans le passé.")
+            raise ValidationError("Les événements de type Match, Tournoi ou Amical doivent avoir un adversaire.")
+
+        if self.date_event:
+            if timezone.is_naive(self.date_event):
+                self.date_event = timezone.make_aware(self.date_event, timezone.get_current_timezone())
+
+            if self.date_event < timezone.now():
+                raise ValidationError("La date de l'événement ne peut pas être dans le passé.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
         super().save(*args, **kwargs)
 
     def __str__(self):

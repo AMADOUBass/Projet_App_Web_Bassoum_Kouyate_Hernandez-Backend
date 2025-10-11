@@ -20,8 +20,7 @@ from .serializers import (
     SeasonStatsSerializer,
     ParticipationSerializer,
     ReportAdminSerializer,
-    EventSerializer
-
+    EventSerializer,
 )
 
 from .utils import approve_user
