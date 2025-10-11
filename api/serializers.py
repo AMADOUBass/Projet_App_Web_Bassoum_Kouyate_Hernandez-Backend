@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
 User = get_user_model()
-
+EMAIL_REGEX = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 # ------------------------
 # User Serializer
 # ------------------------
@@ -74,7 +74,9 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         email = validated_data['email']
-        role = validated_data.get('role', 'player')
+        password = validated_data['password']
+        validated_data.pop('role', None)  # Ignorer le rôle fourni
+        # Génération d'un nom d'utilisateur unique basé sur l'email
         username_base = email.split('@')[0]
         username = username_base
         i = 1
@@ -235,11 +237,6 @@ class ReportAdminSerializer(serializers.ModelSerializer):
         model = ReportAdmin
         fields = '__all__'
         read_only_fields = ['created_by_admin', 'created_at', 'updated_at']
-
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 # ------------------------
 # Participation Serializer
 # ------------------------
@@ -282,10 +279,6 @@ class ParticipationSerializer(serializers.ModelSerializer):
 # ------------------------
 # Event Serializer
 # ------------------------
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
