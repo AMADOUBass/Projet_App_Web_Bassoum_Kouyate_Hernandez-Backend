@@ -6,7 +6,7 @@ from .views import (
 
     # Admin
     UnapprovedUserListView, ApproveUserView, PlayerListView,
-    SeasonStatsAdminListView, SeasonStatsDetailView,
+    SeasonStatsAdminListView, SeasonStatsDetailView, PlayerDetailView,  # Ajoute ici
     EventParticipationView, ReportAdminCreateView, ReportAdminListView,
 
     # Player
@@ -43,6 +43,7 @@ urlpatterns = [
     path('admin/event/<uuid:event_id>/participations/', EventParticipationView.as_view(), name='event_participations'),
     path('admin/reports/', ReportAdminListView.as_view(), name='report_admin_list'),
     path('admin/reports/create/', ReportAdminCreateView.as_view(), name='report_admin_create'),
+    path('admin/players/<uuid:pk>/', PlayerDetailView.as_view(), name='player_detail'),
 
     # ------------------------
     # ⚽ Player-only routes

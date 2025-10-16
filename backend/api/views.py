@@ -62,7 +62,13 @@ class PlayerProfileView(generics.RetrieveUpdateAPIView):
         except Player.DoesNotExist:
             raise NotFound("Profil joueur non trouvé.")
 
-
+class PlayerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Player.objects.all()
+    serializer_class = PlayerSerializer
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+    lookup_field = 'pk'  # Pour UUID
+    
 # ------------------------
 # List of Unapproved Users (admin only)
 # ------------------------

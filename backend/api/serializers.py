@@ -160,15 +160,32 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 # Player Serializer
 # ------------------------
 
+# Dans serializers.py (ajoute à la fin)
 class PlayerSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = UserSerializer(read_only=True)  # Nested pour full info
 
     class Meta:
         model = Player
-        fields = [
-            'id', 'user', 'position',
-            'jersey_number', 'is_available','created_at','updated_at'
-        ]
+        fields = '__all__'
+        read_only_fields = ['id', 'user']  # Admin édite player, pas user core
+
+    def update(self, instance, validated_data):
+        # Mise à jour user fields si fournis (téléphone, bio)
+        user_data = validated_data.pop('user', {})
+        instance.team_name = validated_data.get('team_name', instance.team_name)
+        instance.position = validated_data.get('position', instance.position)
+        instance.jersey_number = validated_data.get('jersey_number', instance.jersey_number)
+        instance.is_available = validated_data.get('is_available', instance.is_available)
+        instance.save()
+
+        # Update user si téléphone/bio changent
+        if 'phone_number' in user_data:
+            instance.user.phone_number = user_data['phone_number']
+        if 'bio' in user_data:
+            instance.user.bio = user_data['bio']
+        instance.user.save()
+
+        return instance
 
 
 # ------------------------
