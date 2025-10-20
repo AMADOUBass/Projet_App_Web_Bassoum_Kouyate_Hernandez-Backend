@@ -160,30 +160,39 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 # Player Serializer
 # ------------------------
 
-# Dans serializers.py (ajoute à la fin)
+
 class PlayerSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)  # Nested pour full info
+    """
+    Serializer pour Player, avec mise à jour imbriquée des champs user (bio, téléphone).
+    Seul l'admin peut modifier via permissions de vue.
+    """
+    user = UserSerializer(read_only=True)  
 
     class Meta:
         model = Player
-        fields = '__all__'
-        read_only_fields = ['id', 'user']  # Admin édite player, pas user core
+        fields = '__all__'  
+        read_only_fields = ['id', 'user']  
 
     def update(self, instance, validated_data):
-        # Mise à jour user fields si fournis (téléphone, bio)
-        user_data = validated_data.pop('user', {})
+        """
+        Met à jour les champs du joueur et certains champs du user imbriqué (bio, téléphone).
+        Utilise serializer pour validation user_data.
+        """
+       
         instance.team_name = validated_data.get('team_name', instance.team_name)
         instance.position = validated_data.get('position', instance.position)
         instance.jersey_number = validated_data.get('jersey_number', instance.jersey_number)
         instance.is_available = validated_data.get('is_available', instance.is_available)
         instance.save()
 
-        # Update user si téléphone/bio changent
-        if 'phone_number' in user_data:
-            instance.user.phone_number = user_data['phone_number']
-        if 'bio' in user_data:
-            instance.user.bio = user_data['bio']
-        instance.user.save()
+        
+        user_data = validated_data.pop('user', {}) 
+        if user_data:
+            user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+            if user_serializer.is_valid():
+                user_serializer.save()
+            else:
+                raise serializers.ValidationError(user_serializer.errors)
 
         return instance
 
