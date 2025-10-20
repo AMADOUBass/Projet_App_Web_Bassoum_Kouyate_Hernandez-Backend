@@ -198,11 +198,6 @@ class UnapprovedUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'username', 'role', 'is_approved']
         read_only_fields = ['id', 'email', 'username', 'role', 'is_approved']
-
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 # ------------------------
 # SeasonStats Serializer
 # ------------------------
