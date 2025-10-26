@@ -198,6 +198,15 @@ class UnapprovedUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'username', 'role', 'is_approved']
         read_only_fields = ['id', 'email', 'username', 'role', 'is_approved']
+
+# ------------------------
+# Approved User Serializer
+# ------------------------
+class ApprovedUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'role', 'is_approved']
+        read_only_fields = ['id', 'email', 'username', 'role', 'is_approved']
 # ------------------------
 # SeasonStats Serializer
 # ------------------------
@@ -315,4 +324,14 @@ class EventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Création d'un événement"""
         event = Event.objects.create(**validated_data)
+
+        # Récupère tous les joueurs existants
+        players = Player.objects.all()
+        for player in players:
+            Participation.objects.create(
+                player=player,
+                event=event,
+                will_attend=False,
+                notified=False
+            )
         return event

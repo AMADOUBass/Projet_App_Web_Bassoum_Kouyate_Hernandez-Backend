@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotAuthenticated
 from .models import User, Player, SeasonStats, Participation, ReportAdmin, Event
@@ -21,6 +22,7 @@ from .serializers import (
     ParticipationSerializer,
     ReportAdminSerializer,
     EventSerializer,
+    ApprovedUserSerializer,
 )
 
 from .utils import approve_user
@@ -72,6 +74,17 @@ class UnapprovedUserListView(generics.ListAPIView):
 
     def get_queryset(self):
         return User.objects.filter(is_approved=False).exclude(role='admin')
+
+# ------------------------
+# List of Unapproved Users (admin only)
+# ------------------------
+class ApprovedUserListView(generics.ListAPIView):
+    serializer_class = ApprovedUserSerializer
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+
+    def get_queryset(self):
+        return User.objects.filter(is_approved=True).exclude(role='admin')
 
 # ------------------------
 # Approve a User (admin only)
@@ -207,7 +220,7 @@ class MyParticipationsView(generics.ListAPIView):
         return Participation.objects.filter(player__user=self.request.user)
 
 class EventListCreateView(generics.ListCreateAPIView):
-    queryset = Event.objects.all()
+    queryset = Event.objects.filter(is_cancelled=False,date_event__gte=timezone.now())
     serializer_class = EventSerializer
     permission_classes = [RoleBasedAccess]
 
