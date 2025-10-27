@@ -186,7 +186,7 @@ class Event(TimestampedModel):
     date_event = models.DateTimeField()
     location = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    opponent = models.JSONField(default=dict, blank=True)
+    opponent = models.CharField(blank=True)
     is_cancelled = models.BooleanField(default=False)
     participants = models.ManyToManyField('Player', through='Participation', related_name='events', blank=True)
 
