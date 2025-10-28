@@ -67,4 +67,5 @@ ENV/
 env.bak/
 venv.bak/
 # ignore my test.rest
-test.rest
+test.restmyapp/migrations/*.py
+myapp/migrations/*.pyc
