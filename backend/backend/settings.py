@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'api.apps.ApiConfig',
     'drf_yasg',
+    
 ]
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
