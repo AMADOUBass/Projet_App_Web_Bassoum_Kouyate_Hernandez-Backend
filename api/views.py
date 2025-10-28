@@ -215,9 +215,16 @@ class MyParticipationsView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
+
         if not user.is_authenticated:
             raise NotAuthenticated("Vous devez être connecté pour accéder à cette ressource.")
-        return Participation.objects.filter(player__user=self.request.user)
+        # ✅ On filtre par joueur connecté et on optimise les relations
+        return (
+            Participation.objects
+            .select_related("event", "player__user")  # charge l'événement et le joueur
+            .filter(player__user=user)
+            .order_by("-event__date_event")  # les plus récents d'abord
+        )
 
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.filter(is_cancelled=False,date_event__gte=timezone.now())

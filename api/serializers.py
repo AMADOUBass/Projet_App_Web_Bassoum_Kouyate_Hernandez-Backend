@@ -247,6 +247,7 @@ class ReportAdminSerializer(serializers.ModelSerializer):
 class ParticipationSerializer(serializers.ModelSerializer):
     player_name = serializers.SerializerMethodField()
     event_title = serializers.SerializerMethodField()
+    event_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Participation
@@ -256,11 +257,11 @@ class ParticipationSerializer(serializers.ModelSerializer):
             'player_name',
             'event',
             'event_title',
+            'event_date',
             'will_attend',
-            'notified'
+            'notified',
         ]
-
-        read_only_fields = ['player', 'event', 'player_name', 'event_title']
+        read_only_fields = ['player', 'event', 'player_name', 'event_title', 'event_date']
 
     def get_player_name(self, obj):
         return obj.player.user.get_full_name() or obj.player.user.email
@@ -268,14 +269,17 @@ class ParticipationSerializer(serializers.ModelSerializer):
     def get_event_title(self, obj):
         return obj.event.title
 
+    def get_event_date(self, obj):
+        # ✅ Retourne la date au bon format ISO (lisible côté frontend)
+        return obj.event.date_event.isoformat() if obj.event.date_event else None
+
     def validate(self, data):
         user = self.context['request'].user
         if not user.is_authenticated:
             raise serializers.ValidationError("Vous devez être connecté pour accéder à cette ressource.")
-        participation = self.instance
 
-        # Si ce n’est pas l’admin et que ce n’est pas sa propre participation
-        if participation and not user.is_admin_user and participation.player.user != user:
+        participation = self.instance
+        if participation and not getattr(user, "is_admin_user", False) and participation.player.user != user:
             raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
         return data
 
