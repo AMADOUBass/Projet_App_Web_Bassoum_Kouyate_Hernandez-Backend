@@ -5,17 +5,14 @@ from .views import (
     RegisterView, CurrentUserView, CustomTokenObtainPairView,
 
     # Admin
-    UnapprovedUserListView, ApproveUserView, PlayerListView,
+    UnapprovedUserListView, ApproveUserView, PlayerListView,ApprovedUserListView,
     SeasonStatsAdminListView, SeasonStatsDetailView,
     EventParticipationView, ReportAdminCreateView, ReportAdminListView,
 
     # Player
     PlayerProfileView, PlayerParticipationUpdateView, MyParticipationsView,
     MySeasonStatsView,
-    
-    # Public
-    # EventListCreateView, EventRetrieveUpdateDestroyView,
-    
+
     # Ajax Validation
     validate_password, validate_login, validate_email,
 
@@ -36,6 +33,7 @@ urlpatterns = [
     # 🛡 Admin-only routes
     # ------------------------
     path('admin/unapproved-users/', UnapprovedUserListView.as_view(), name='unapproved_users'),
+    path('admin/approved-users/', ApprovedUserListView.as_view(), name='approved_users'),
     path('admin/approve-player/<uuid:user_id>/', ApproveUserView.as_view(), name='approve_user'),
     path('admin/players/', PlayerListView.as_view(), name='player_list'),
     path('admin/season-stats/', SeasonStatsAdminListView.as_view(), name='admin_season_stats'),
@@ -51,7 +49,7 @@ urlpatterns = [
     path('player/participation/<uuid:pk>/', PlayerParticipationUpdateView.as_view(), name='player_participation_update'),
     path('player/my-participations/', MyParticipationsView.as_view(), name='my_participations'),
     path('player/my-season-stats/', MySeasonStatsView.as_view(), name='my_season_stats'),
-    
+
     # ------------------------
     # 🧪 Validation Ajax routes
     # ------------------------
@@ -64,4 +62,6 @@ urlpatterns = [
     # ------------------------
     path('events/', EventListCreateView.as_view(), name='event-list-create'),
     path('events/<uuid:pk>/', EventRetrieveUpdateDestroyView.as_view(), name='event-detail'),
+
+
 ]

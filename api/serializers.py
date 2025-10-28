@@ -2,9 +2,13 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, Player, SeasonStats, ReportAdmin , Participation, Event
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 import re
 # from django.core.exceptions import ValidationError
 # from django.core.validators import validate_email
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 User = get_user_model()
 EMAIL_REGEX = r"^[\w\.-]+@[\w\.-]+\.\w+$"
@@ -154,7 +158,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             "id": str(user.id),
             "expires_in": access.lifetime.total_seconds(),
         }
-        
+
 
 # ------------------------
 # Player Serializer
@@ -194,7 +198,15 @@ class UnapprovedUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'username', 'role', 'is_approved']
         read_only_fields = ['id', 'email', 'username', 'role', 'is_approved']
-        
+
+# ------------------------
+# Approved User Serializer
+# ------------------------
+class ApprovedUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'role', 'is_approved']
+        read_only_fields = ['id', 'email', 'username', 'role', 'is_approved']
 # ------------------------
 # SeasonStats Serializer
 # ------------------------
@@ -229,7 +241,6 @@ class ReportAdminSerializer(serializers.ModelSerializer):
         model = ReportAdmin
         fields = '__all__'
         read_only_fields = ['created_by_admin', 'created_at', 'updated_at']
-        
 # ------------------------
 # Participation Serializer
 # ------------------------
@@ -267,8 +278,60 @@ class ParticipationSerializer(serializers.ModelSerializer):
         if participation and not user.is_admin_user and participation.player.user != user:
             raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
         return data
+
+
+# ------------------------
+# Event Serializer
+# ------------------------
 class EventSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Event
-        fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'title',
+            'event_type',
+            'date_event',
+            'location',
+            'description',
+            'opponent',
+            'is_cancelled',
+        ]
+        read_only_fields = ['id']
+
+    def validate_title(self, value):
+        """Valide le titre de l'événement"""
+        if len(value.strip()) < 3:
+            raise serializers.ValidationError("Le titre doit contenir au moins 3 caractères.")
+        return value
+
+    def validate_event_type(self, value):
+        """Valide le type d'événement"""
+        valid_types = [choice[0] for choice in Event.EVENT_TYPES]
+        if value not in valid_types:
+            raise serializers.ValidationError("Type d'événement invalide.")
+        return value
+
+    def validate_date_event(self, value):
+        """Valide la date de l'événement"""
+        if timezone.is_naive(value):
+            value = timezone.make_aware(value, timezone.get_current_timezone())
+
+        if value < timezone.now():
+            raise serializers.ValidationError("La date de l'événement doit être dans le futur.")
+        return value
+
+    def create(self, validated_data):
+        """Création d'un événement"""
+        event = Event.objects.create(**validated_data)
+
+        # Récupère tous les joueurs existants
+        players = Player.objects.all()
+        for player in players:
+            Participation.objects.create(
+                player=player,
+                event=event,
+                will_attend=False,
+                notified=False
+            )
+        return event
