@@ -170,9 +170,10 @@ class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = [
-            'id', 'user', 'position',
+            'id', 'user', 'position', 'team_name',
             'jersey_number', 'is_available','created_at','updated_at'
         ]
+    
 
 
 # ------------------------
@@ -205,8 +206,19 @@ class UnapprovedUserSerializer(serializers.ModelSerializer):
 class ApprovedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'role', 'is_approved']
-        read_only_fields = ['id', 'email', 'username', 'role', 'is_approved']
+        fields = [
+            'id',              # identifiant unique
+            'email',           # adresse email
+            'username',        # nom d’utilisateur
+            'first_name',      # prénom
+            'last_name',       # nom de famille
+            'profile_picture', # photo de profil
+            'role',            # rôle (admin, joueur, etc.)
+            'is_approved',     # statut d’approbation
+            'created_at',      # date de création
+        ]
+        read_only_fields = fields
+
 # ------------------------
 # SeasonStats Serializer
 # ------------------------
