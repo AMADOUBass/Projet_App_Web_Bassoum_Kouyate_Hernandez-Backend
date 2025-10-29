@@ -119,6 +119,16 @@ class PlayerListView(generics.ListAPIView):
     queryset = Player.objects.all()
 
 # ------------------------
+# Player ViewSet for Admin
+from rest_framework import viewsets
+
+class PlayerViewSet(viewsets.ModelViewSet):
+    queryset = Player.objects.select_related('user').all()
+    serializer_class = PlayerSerializer
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+
+# ------------------------
 # SeasonStats Serializer
 # ------------------------
 class SeasonStatsAdminView(generics.ListCreateAPIView):
@@ -299,3 +309,14 @@ def validate_login(request):
 
     except User.DoesNotExist:
         return Response({"error": "Les identifiants sont invalides."}, status=401)
+    
+class UserUpdateView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'pk'
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+    
+    def get_serializer(self, *args, **kwargs):
+        kwargs['partial'] = True
+        return super().get_serializer(*args, **kwargs)
