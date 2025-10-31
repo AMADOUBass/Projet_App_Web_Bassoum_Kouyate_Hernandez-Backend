@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='event',
             name='opponent',
-            field=models.CharField(blank=True, default=dict),
+            field=models.CharField(blank=True, default=dict, max_length=255, null=True),
         ),
     ]
