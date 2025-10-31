@@ -177,19 +177,58 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 # ------------------------
-# Player Profile Serializer
+# Player Profile Serializer (Retrieve/Update)
 # ------------------------
-
 class PlayerProfileSerializer(serializers.ModelSerializer):
+    
+    # Champs User pour la LECTURE seule (souvent l'email et l'ID)
+    email = serializers.EmailField(source='user.email', read_only=True)
     user = serializers.StringRelatedField(read_only=True)
-    bio = serializers.CharField(source='user.bio', allow_blank=True, required=False)
-    profile_picture = serializers.ImageField(source='user.profile_picture', allow_null=True, required=False)
 
+    #  Champs User pour la LECTURE ET L'ÉCRITURE (utilisation de source='user.fieldname')
+    # Ceci est la structure recommandée pour le Nested Write (écriture dans le modèle User via Player)
+    username = serializers.CharField(source='user.username', required=False, allow_blank=False, max_length=150)
+    first_name = serializers.CharField(source='user.first_name', required=False, allow_blank=True, max_length=150)
+    last_name = serializers.CharField(source='user.last_name', required=False, allow_blank=True, max_length=150)
+    phone_number = serializers.CharField(source='user.phone_number', required=False, allow_blank=True, max_length=20)
+    bio = serializers.CharField(source='user.bio', allow_blank=True, required=False)
+    
+    #  GESTION DE L'IMAGE : Utiliser ImageField avec source='user.profile_picture'
+    # DRF gère correctement le fichier MultipartFormData et le place dans validated_data['user'].
+    profile_picture = serializers.ImageField(source='user.profile_picture', allow_null=True, required=False)
+    
     class Meta:
         model = Player
-        fields = ['user', 'position', 'jersey_number', 'bio', 'profile_picture']
+        fields = [
+            # Champs Player
+            'position', 'jersey_number', 
+            # Champs User et sourcés
+            'email', 'username', 'first_name', 'last_name', 'phone_number',
+            'bio', 'profile_picture', 
+            'user' # Garder pour la représentation
+        ]
+        read_only_fields = ['user', 'email']
 
+    def update(self, instance, validated_data):
+        
+        
+        user_data = validated_data.pop('user', {}) 
+        
+        user_instance = instance.user
+        
+        # 1. Mise à jour de l'objet User
+        for key, value in user_data.items():
+            setattr(user_instance, key, value)
+        user_instance.save()
 
+        # 2. Mise à jour des champs du modèle Player (champs restants : position, jersey_number)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+            
+        instance.save()
+        return instance
+
+    
 # ------------------------
 # Unapproved User Serializer
 # ------------------------
