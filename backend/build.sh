@@ -14,7 +14,7 @@ email = '$DJANGO_SUPERUSER_EMAIL'
 password = '$DJANGO_SUPERUSER_PASSWORD'
 bio = '$DJANGO_SUPERUSER_BIO'
 if not User.objects.filter(email=email).exists():
-    User.objects.create_superuser(email=email, password=password, telephone=telephone, bio=bio)
+    User.objects.create_superuser(email=email, password=password,bio=bio)
     print('Superuser created successfully.')
 else:
     print('Superuser already exists, skipping creation.')
