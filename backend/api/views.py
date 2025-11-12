@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.exceptions import NotAuthenticated
 from .models import User, Player, SeasonStats, Participation, ReportAdmin, Event
 from django.db.models import Sum, Avg, Max
@@ -52,17 +53,42 @@ class CurrentUserView(generics.RetrieveAPIView):
     def get_object(self):
         return self.request.user
 
-# ------------------------
-# Player Profile View (for player to update their own profile)
-# ------------------------
+
+
 class PlayerProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = PlayerProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [RoleBasedAccess]
+    player_only = True
+    parser_classes = (MultiPartParser, FormParser)  
+
     def get_object(self):
+        """Récupère l'objet Player lié à l'utilisateur authentifié."""
         try:
             return self.request.user.player_profile
         except Player.DoesNotExist:
             raise NotFound("Profil joueur non trouvé.")
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        # Gestion spéciale pour le champ profile_picture
+        if 'profile_picture' in request.FILES:
+           
+            instance.profile_picture = request.FILES['profile_picture']
+        elif request.data.get('profile_picture') == '':
+          
+            instance.profile_picture = None
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        """Personnalisation de la sauvegarde"""
+        serializer.save()
 
 
 # ------------------------
