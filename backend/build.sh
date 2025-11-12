@@ -24,8 +24,8 @@ fi
 # ⚽ Créer 10 joueurs avec stats pour 2025
 python manage.py shell -c "
 from django.contrib.auth import get_user_model
-from core.models import Player
-from stats.models import SeasonStats
+from api.models import Player
+from api.models import SeasonStats
 import random
 
 User = get_user_model()
