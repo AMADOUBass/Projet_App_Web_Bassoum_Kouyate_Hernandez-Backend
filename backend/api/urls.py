@@ -19,6 +19,9 @@ from .views import (
 
     #Event
     EventListCreateView, EventRetrieveUpdateDestroyView,
+
+    #Participation
+    GiveNotesToPlayerCreateView,
 )
 router = DefaultRouter()
 router.register(r'admin/players', PlayerViewSet, basename='player')
@@ -67,5 +70,9 @@ urlpatterns = [
     path('events/', EventListCreateView.as_view(), name='event-list-create'),
     path('events/<uuid:pk>/', EventRetrieveUpdateDestroyView.as_view(), name='event-detail'),
 
+    # ------------------------
+    # 📅 Participations routes
+    # ------------------------
+    path('give-notes-to-player/',GiveNotesToPlayerCreateView.as_view(), name='give-notes-to-player'),
 
 ] + router.urls

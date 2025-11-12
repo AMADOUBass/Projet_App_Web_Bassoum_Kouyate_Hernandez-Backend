@@ -173,7 +173,7 @@ class PlayerSerializer(serializers.ModelSerializer):
             'id', 'user', 'position', 'team_name',
             'jersey_number', 'is_available','created_at','updated_at'
         ]
-    
+
 
 
 # ------------------------
@@ -291,6 +291,15 @@ class ParticipationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
         return data
 
+    def validate_note(self, value):
+        if value is None:
+            return value  # Autorise le champ vide
+        if not isinstance(value, int):
+            raise serializers.ValidationError("La note doit être un nombre entier.")
+        if not (0 <= value <= 10):
+            raise serializers.ValidationError("La note doit être comprise entre 0 et 10.")
+        return value
+
 
 # ------------------------
 # Event Serializer
@@ -343,7 +352,7 @@ class EventSerializer(serializers.ModelSerializer):
             Participation.objects.create(
                 player=player,
                 event=event,
-                will_attend=False,
+                will_attend=True,
                 notified=False
             )
         return event

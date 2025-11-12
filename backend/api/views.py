@@ -309,14 +309,47 @@ def validate_login(request):
 
     except User.DoesNotExist:
         return Response({"error": "Les identifiants sont invalides."}, status=401)
-    
+
 class UserUpdateView(generics.UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'pk'
     permission_classes = [RoleBasedAccess]
     admin_only = True
-    
+
     def get_serializer(self, *args, **kwargs):
         kwargs['partial'] = True
         return super().get_serializer(*args, **kwargs)
+
+class GiveNotesToPlayerCreateView(generics.UpdateAPIView):
+      def post(self, request, *args, **kwargs):
+        participation_id = request.data.get("participation_id")
+        note = request.data.get("note")
+
+        if participation_id is None or note is None:
+            return Response(
+                {"error": "Participation et note sont requis."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            participation = Participation.objects.get(id=participation_id)
+        except Participation.DoesNotExist:
+            return Response(
+                {"error": "Participation non trouvée."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Passer request dans le contexte
+        serializer = ParticipationSerializer(
+            participation,
+            data={"note": note},  # ton champ note doit être ajouté au serializer
+            partial=True,
+            context={"request": request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

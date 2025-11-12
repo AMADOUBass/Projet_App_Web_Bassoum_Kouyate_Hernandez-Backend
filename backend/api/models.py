@@ -158,6 +158,7 @@ class Participation(TimestampedModel):
     event = models.ForeignKey('Event', on_delete=models.CASCADE)
     will_attend = models.BooleanField(default=False)  # Le joueur coche ce champ dans l'UI
     notified = models.BooleanField(default=False)     # Pour savoir si le joueur a été informé
+    note = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         verbose_name = 'Participation'
