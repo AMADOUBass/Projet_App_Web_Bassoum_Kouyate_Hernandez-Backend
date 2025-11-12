@@ -212,9 +212,15 @@ class ApprovedUserSerializer(serializers.ModelSerializer):
 # ------------------------
 
 class SeasonStatsSerializer(serializers.ModelSerializer):
+    player_name = serializers.SerializerMethodField()
+    player_position = serializers.CharField(source='player.position', read_only=True)
+    player_id = serializers.UUIDField(source='player.id', read_only=True)
     class Meta:
         model = SeasonStats
         fields = '__all__'
+        
+    def get_player_name(self, obj):
+        return obj.player.user.get_full_name() or obj.player.user.email
 
 # ------------------------
 # ReportAdmin Serializer

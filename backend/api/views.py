@@ -2,7 +2,7 @@ import re
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated , IsAdminUser
 from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
@@ -10,6 +10,7 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotAuthenticated
 from .models import User, Player, SeasonStats, Participation, ReportAdmin, Event
+from django.db.models import Sum, Avg, Max
 from .permissions import RoleBasedAccess
 from .serializers import (
     RegisterSerializer,
@@ -116,7 +117,21 @@ class PlayerListView(generics.ListAPIView):
     serializer_class = PlayerSerializer
     permission_classes = [RoleBasedAccess]
     admin_only = True
-    queryset = Player.objects.all()
+    
+    def get_queryset(self):
+        return Player.objects.filter(user__is_approved=True)
+
+# ------------------------
+# Player ViewSet for Admin
+from rest_framework import viewsets
+
+class PlayerViewSet(viewsets.ModelViewSet):
+    serializer_class = PlayerSerializer
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+
+    def get_queryset(self):
+        return Player.objects.select_related('user').filter(user__is_approved=True)
 
 # ------------------------
 # SeasonStats Serializer
@@ -173,6 +188,89 @@ class MySeasonStatsView(generics.ListAPIView):
             queryset = queryset.filter(match_id=match_id)
 
         return queryset
+
+
+class TeamSeasonStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        season = request.query_params.get("season")
+        group_by = request.query_params.get("group_by")
+
+        stats = SeasonStats.objects.all()
+        if season:
+            stats = stats.filter(season_year=season)
+
+        if group_by == "season":
+            grouped = {}
+            for year in stats.values_list("season_year", flat=True).distinct():
+                season_stats = stats.filter(season_year=year)
+                aggregated = season_stats.aggregate(
+                    total_goals=Sum("goals"),
+                    total_assists=Sum("assists"),
+                    total_yellow=Sum("yellow_cards"),
+                    total_red=Sum("red_cards"),
+                    moyenne_notes=Avg("notes_moyenne_saison"),
+                    max_games=Max("games_played"),
+                )
+
+                grouped[year] = {
+                    "season": year,
+                    "players_count": season_stats.count(),
+                    "max_games_played": aggregated["max_games"] or 0,
+                    "total_goals": aggregated["total_goals"] or 0,
+                    "total_assists": aggregated["total_assists"] or 0,
+                    "total_yellow_cards": aggregated["total_yellow"] or 0,
+                    "total_red_cards": aggregated["total_red"] or 0,
+                    "average_rating": round(aggregated["moyenne_notes"] or 0, 2),
+                }
+
+            return Response({
+                "grouped_by_season": grouped,
+                "distinct_seasons": len(grouped),
+            })
+
+        aggregated = stats.aggregate(
+            total_goals=Sum("goals"),
+            total_assists=Sum("assists"),
+            total_yellow=Sum("yellow_cards"),
+            total_red=Sum("red_cards"),
+            moyenne_notes=Avg("notes_moyenne_saison"),
+            max_games=Max("games_played"),
+        )
+
+        return Response({
+            "season": season or "Toutes",
+            "players_count": stats.count(),
+            "max_games_played": aggregated["max_games"] or 0,
+            "total_goals": aggregated["total_goals"] or 0,
+            "total_assists": aggregated["total_assists"] or 0,
+            "total_yellow_cards": aggregated["total_yellow"] or 0,
+            "total_red_cards": aggregated["total_red"] or 0,
+            "average_rating": round(aggregated["moyenne_notes"] or 0, 2),
+            "distinct_seasons": stats.values_list("season_year", flat=True).distinct().count(),
+        })
+# ------------------------
+# Available Seasons View (admin only)
+# ------------------------
+
+class AvailableSeasonsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        seasons = SeasonStats.objects.values_list("season_year", flat=True).distinct().order_by("-season_year")
+        return Response(list(seasons))
+    
+class CreateSeasonStatsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        serializer = SeasonStatsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # ------------------------
 # Event Participation View (admin only)
 # ------------------------
@@ -299,3 +397,35 @@ def validate_login(request):
 
     except User.DoesNotExist:
         return Response({"error": "Les identifiants sont invalides."}, status=401)
+
+class UserUpdateView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'pk'
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+    
+    def get_serializer(self, *args, **kwargs):
+        kwargs['partial'] = True
+        return super().get_serializer(*args, **kwargs)
+    
+    def perform_destroy(self, instance):
+        if instance.is_superuser:
+            raise PermissionError("Vous ne pouvez pas supprimer un utilisateur superadmin.")
+        instance.delete()
+        
+class DeletePlayerAndUserView(APIView):
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+
+    def delete(self, request, pk):
+        try:
+            player = Player.objects.get(pk=pk)
+            user = player.user
+            player.delete()
+            user.delete()
+            return Response({"detail": "Joueur et utilisateur supprimés."}, status=status.HTTP_204_NO_CONTENT)
+        except Player.DoesNotExist:
+            return Response({"detail": "Joueur introuvable."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -79,7 +79,7 @@ class ParticipationAdmin(admin.ModelAdmin):
 # ------------------------
 @admin.register(SeasonStats)
 class SeasonStatsAdmin(admin.ModelAdmin):
-    list_display = ('player', 'season_year', 'games_played', 'goals', 'assists', 'yellow_cards', 'red_cards')
+    list_display = ('player', 'season_year', 'games_played', 'goals', 'assists', 'yellow_cards', 'red_cards', 'notes_moyenne_saison')
     list_filter = ('season_year',)
     search_fields = ('player__user__email', 'player__user__username')
     ordering = ('-season_year', '-goals')
@@ -89,7 +89,7 @@ class SeasonStatsAdmin(admin.ModelAdmin):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="season_stats.csv"'
         writer = csv.writer(response)
-        writer.writerow(['Player', 'Season', 'Games Played', 'Goals', 'Assists', 'Yellow Cards', 'Red Cards'])
+        writer.writerow(['Player', 'Season', 'Games Played', 'Goals', 'Assists', 'Yellow Cards', 'Red Cards', 'Note moyenne'])
 
         for stat in queryset:
             writer.writerow([
@@ -99,10 +99,13 @@ class SeasonStatsAdmin(admin.ModelAdmin):
                 stat.goals,
                 stat.assists,
                 stat.yellow_cards,
-                stat.red_cards
+                stat.red_cards,
+                stat.notes_moyenne_saison
             ])
         return response
-    export_stats_csv.short_description = "Exporter les statistiques en CSV"
+
+    export_stats_csv.short_description = "📥 Exporter les statistiques en CSV"
+
 
 # ------------------------
 # ReportAdmin
