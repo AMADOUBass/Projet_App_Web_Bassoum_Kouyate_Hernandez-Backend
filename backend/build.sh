@@ -45,11 +45,11 @@ for i in range(1, 11):
             first_name=f'Joueur{i}'
         )
         position = random.choice(positions)
-        player, created = Player.objects.get_or_create(user=user, defaults={"position": position})
+        player, created = Player.objects.get_or_create(user=user, defaults={'position': position})
         if created:
-            print(f"✅ Joueur {i} créé avec profil Player")
+            print(f'Joueur {i} créé avec profil Player')
         else:
-            print(f"⚠️ Joueur {i} a déjà un profil Player")
+            print(f'Joueur {i} a déjà un profil Player')
 
         SeasonStats.objects.create(
             player=player,
@@ -61,9 +61,9 @@ for i in range(1, 11):
             red_cards=random.randint(0, 2),
             average_rating=round(random.uniform(5.5, 8.5), 2)
         )
-        print(f'✅ Joueur {i} créé avec stats ({position})')
+        print(f'Joueur {i} créé avec stats ({position})')
     else:
-        print(f'⚠️ Joueur {i} déjà existant')
+        print(f'Joueur {i} déjà existant')
 "
 # ✅ Temporarily show password
 echo "Superuser email: $DJANGO_SUPERUSER_EMAIL"
