@@ -45,7 +45,11 @@ for i in range(1, 11):
             first_name=f'Joueur{i}'
         )
         position = random.choice(positions)
-        player = Player.objects.create(user=user, position=position)
+        player, created = Player.objects.get_or_create(user=user, defaults={"position": position})
+        if created:
+            print(f"✅ Joueur {i} créé avec profil Player")
+        else:
+            print(f"⚠️ Joueur {i} a déjà un profil Player")
 
         SeasonStats.objects.create(
             player=player,
