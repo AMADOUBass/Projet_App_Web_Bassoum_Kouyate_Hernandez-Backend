@@ -21,6 +21,7 @@ else:
 "
 fi
 
+
 # ✅ Temporarily show password
 echo "Superuser email: $DJANGO_SUPERUSER_EMAIL"
 echo "Superuser password: '$DJANGO_SUPERUSER_PASSWORD'"

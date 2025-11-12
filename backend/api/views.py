@@ -134,6 +134,16 @@ class PlayerViewSet(viewsets.ModelViewSet):
         return Player.objects.select_related('user').filter(user__is_approved=True)
 
 # ------------------------
+# Player ViewSet for Admin
+from rest_framework import viewsets
+
+class PlayerViewSet(viewsets.ModelViewSet):
+    queryset = Player.objects.select_related('user').all()
+    serializer_class = PlayerSerializer
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+
+# ------------------------
 # SeasonStats Serializer
 # ------------------------
 class SeasonStatsAdminView(generics.ListCreateAPIView):
