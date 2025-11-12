@@ -21,12 +21,14 @@ else:
 "
 fi
 
-# ⚽ Créer 10 joueurs avec stats pour 2025
-python manage.py shell -c "
+# ⚽ Créer 10 joueurs avec stats pour 2025 si demandé
+if [[ "$CREATE_FAKE_PLAYERS" == "true" ]]; then
+  python manage.py shell -c "
 from django.contrib.auth import get_user_model
 from api.models import Player
 from api.models import SeasonStats
 import random
+from decimal import Decimal
 
 User = get_user_model()
 
@@ -59,12 +61,14 @@ for i in range(1, 11):
             assists=random.randint(0, 8),
             yellow_cards=random.randint(0, 4),
             red_cards=random.randint(0, 2),
-            average_rating=round(random.uniform(5.5, 8.5), 2)
+            notes_moyenne_saison=Decimal(str(round(random.uniform(5.5, 8.5), 2)))
         )
         print(f'Joueur {i} créé avec stats ({position})')
     else:
         print(f'Joueur {i} déjà existant')
-"
+  "
+fi
+
 # ✅ Temporarily show password
 echo "Superuser email: $DJANGO_SUPERUSER_EMAIL"
 echo "Superuser password: '$DJANGO_SUPERUSER_PASSWORD'"
