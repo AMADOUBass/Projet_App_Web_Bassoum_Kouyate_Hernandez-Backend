@@ -269,7 +269,12 @@ class ParticipationSerializer(serializers.ModelSerializer):
             'event',
             'event_title',
             'will_attend',
-            'notified'
+            'notified',
+            'performance',
+            'cartonJaune',
+            'cartonRouge',
+            'buts',
+            'passe',
         ]
 
         read_only_fields = ['player', 'event', 'player_name', 'event_title']
@@ -290,16 +295,6 @@ class ParticipationSerializer(serializers.ModelSerializer):
         if participation and not user.is_admin_user and participation.player.user != user:
             raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
         return data
-
-    def validate_note(self, value):
-        if value is None:
-            return value  # Autorise le champ vide
-        if not isinstance(value, int):
-            raise serializers.ValidationError("La note doit être un nombre entier.")
-        if not (0 <= value <= 10):
-            raise serializers.ValidationError("La note doit être comprise entre 0 et 10.")
-        return value
-
 
 # ------------------------
 # Event Serializer
@@ -353,6 +348,11 @@ class EventSerializer(serializers.ModelSerializer):
                 player=player,
                 event=event,
                 will_attend=True,
-                notified=False
+                notified=False,
+                performance=0,
+                cartonJaune=0,
+                cartonRouge=0,
+                buts=0,
+                passe=0,
             )
         return event
