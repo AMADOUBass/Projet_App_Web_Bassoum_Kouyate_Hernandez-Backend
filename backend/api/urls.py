@@ -8,12 +8,11 @@ from .views import (
     # Admin
     UnapprovedUserListView, ApproveUserView,ApprovedUserListView,
     SeasonStatsAdminListView, SeasonStatsDetailView,
-    EventParticipationView, ReportAdminCreateView, ReportAdminListView,
-
+    EventParticipationView, ReportAdminCreateView, ReportAdminListView, TeamSeasonStatsView, AvailableSeasonsView,
+    CreateSeasonStatsView, DeletePlayerAndUserView,
     # Player
     PlayerProfileView, PlayerParticipationUpdateView, MyParticipationsView,
-    MySeasonStatsView, PlayerViewSet, UserUpdateView,
-
+    MySeasonStatsView,PlayerViewSet,UserUpdateView,
     # Ajax Validation
     validate_password, validate_login, validate_email,
 
@@ -21,7 +20,7 @@ from .views import (
     EventListCreateView, EventRetrieveUpdateDestroyView,
 
     #Participation
-    GiveNotesToPlayerCreateView,
+    AdminParticipationUpdateView,
 )
 router = DefaultRouter()
 router.register(r'admin/players', PlayerViewSet, basename='player')
@@ -42,8 +41,12 @@ urlpatterns = [
     path('admin/unapproved-users/', UnapprovedUserListView.as_view(), name='unapproved_users'),
     path('admin/approved-users/', ApprovedUserListView.as_view(), name='approved_users'),
     path('admin/approve-player/<uuid:user_id>/', ApproveUserView.as_view(), name='approve_user'),
+    path('admin/players/<uuid:pk>/delete-both/', DeletePlayerAndUserView.as_view(), name='delete_player_and_user'),
     # path('admin/players/', PlayerListView.as_view(), name='player_list'),
     path('admin/season-stats/', SeasonStatsAdminListView.as_view(), name='admin_season_stats'),
+    path('admin/team-season-stats/', TeamSeasonStatsView.as_view(), name='team_season_stats'),
+    path('admin/available-seasons/', AvailableSeasonsView.as_view(), name='available_seasons'),
+    path('admin/create-season-stats/', CreateSeasonStatsView.as_view(), name='create_season_stats'),
     path('admin/season-stats/<uuid:pk>/', SeasonStatsDetailView.as_view(), name='season_stats_detail'),
     path('admin/event/<uuid:event_id>/participations/', EventParticipationView.as_view(), name='event_participations'),
     path('admin/reports/', ReportAdminListView.as_view(), name='report_admin_list'),
@@ -73,6 +76,6 @@ urlpatterns = [
     # ------------------------
     # 📅 Participations routes
     # ------------------------
-    path('give-notes-to-player/',GiveNotesToPlayerCreateView.as_view(), name='give-notes-to-player'),
+    path('admin/participation/<int:pk>/update/', AdminParticipationUpdateView.as_view(), name='admin-participation-update'),
 
 ] + router.urls

@@ -21,9 +21,15 @@ class UserManager(BaseUserManager):
             raise ValueError("L'adresse e-mail doit être fournie")
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             raise ValueError("L'adresse e-mail fournie n'est pas valide")
+
         email = self.normalize_email(email)
-        if not extra_fields.get("username"):
-            extra_fields["username"] = email.split("@")[0]
+
+        # 🧠 Déduire un nom par défaut à partir de l'email
+        local_part = email.split("@")[0]
+        extra_fields.setdefault("username", local_part)
+        extra_fields.setdefault("first_name", "Joueur")
+        extra_fields.setdefault("last_name", local_part.capitalize())
+
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
