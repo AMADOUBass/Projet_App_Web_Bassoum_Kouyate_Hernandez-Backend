@@ -268,6 +268,7 @@ class ParticipationSerializer(serializers.ModelSerializer):
     player_number = serializers.SerializerMethodField()
     event_title = serializers.SerializerMethodField()
     event_date = serializers.SerializerMethodField()
+    event_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Participation
@@ -277,6 +278,7 @@ class ParticipationSerializer(serializers.ModelSerializer):
             'player_name',
             'player_number',
             'player_position',
+            'event_type',
             'event',
             'event_date',
             'event_title',
@@ -307,6 +309,9 @@ class ParticipationSerializer(serializers.ModelSerializer):
     def get_event_date(self, obj):
         return obj.event.date_event if obj.event else None
 
+    def get_event_type(self, obj):
+        return obj.event.event_type if obj.event else ""
+
 class ParticipationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participation
@@ -320,7 +325,7 @@ class ParticipationUpdateSerializer(serializers.ModelSerializer):
             'buts',
             'passe',
         ]
-        read_only_fields = fields
+        read_only_fields = ['id']
 
 # ------------------------
 # Event Serializer

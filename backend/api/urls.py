@@ -76,6 +76,6 @@ urlpatterns = [
     # ------------------------
     # 📅 Participations routes
     # ------------------------
-    path('admin/participation/<int:pk>/update/', AdminParticipationUpdateView.as_view(), name='admin-participation-update'),
+    path('admin/participation/<uuid:pk>/update/', AdminParticipationUpdateView.as_view(), name='admin-participation-update'),
 
 ] + router.urls
