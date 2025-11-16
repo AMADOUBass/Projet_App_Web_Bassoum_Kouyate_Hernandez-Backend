@@ -335,7 +335,7 @@ class ParticipationSerializer(serializers.ModelSerializer):
 # Event Serializer
 # ------------------------
 class EventSerializer(serializers.ModelSerializer):
-
+    date_event = serializers.DateTimeField(format='%d %b %Y, %H:%M')
     class Meta:
         model = Event
         fields = [
