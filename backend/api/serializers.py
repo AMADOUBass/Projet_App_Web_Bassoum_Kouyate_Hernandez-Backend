@@ -298,44 +298,6 @@ class ReportAdminSerializer(serializers.ModelSerializer):
         model = ReportAdmin
         fields = '__all__'
         read_only_fields = ['created_by_admin', 'created_at', 'updated_at']
-# ------------------------
-# Participation Serializer
-# ------------------------
-class ParticipationSerializer(serializers.ModelSerializer):
-    player_name = serializers.SerializerMethodField()
-    event_title = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Participation
-        fields = [
-            'id',
-            'player',
-            'player_name',
-            'event',
-            'event_title',
-            'will_attend',
-            'notified'
-        ]
-
-        read_only_fields = ['player', 'event', 'player_name', 'event_title']
-
-    def get_player_name(self, obj):
-        return obj.player.user.get_full_name() or obj.player.user.email
-
-    def get_event_title(self, obj):
-        return obj.event.title
-
-    def validate(self, data):
-        user = self.context['request'].user
-        if not user.is_authenticated:
-            raise serializers.ValidationError("Vous devez être connecté pour accéder à cette ressource.")
-        participation = self.instance
-
-        # Si ce n’est pas l’admin et que ce n’est pas sa propre participation
-        if participation and not user.is_admin_user and participation.player.user != user:
-            raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
-        return data
-
 
 # ------------------------
 # Event Serializer
@@ -371,6 +333,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     def validate_date_event(self, value):
         """Valide la date de l'événement"""
+        date_event = serializers.DateTimeField(format='%d %b %Y, %H:%M')
         if timezone.is_naive(value):
             value = timezone.make_aware(value, timezone.get_current_timezone())
 
@@ -392,3 +355,45 @@ class EventSerializer(serializers.ModelSerializer):
                 notified=False
             )
         return event
+    
+# ------------------------
+# Participation Serializer
+# ------------------------
+class ParticipationSerializer(serializers.ModelSerializer):
+    player_name = serializers.SerializerMethodField()
+    event = EventSerializer(read_only=True)
+
+    class Meta:
+        model = Participation
+        fields = [
+            'id',
+            'player',
+            'player_name',
+            'event', 
+            'will_attend',
+            'notified',
+             
+        ]
+
+        read_only_fields = ['player', 'event', 'player_name', 'event_title']
+
+    def get_player_name(self, obj):
+        return obj.player.user.get_full_name() or obj.player.user.email
+
+    def get_event_title(self, obj):
+        return obj.event.title
+
+    def validate(self, data):
+        user = self.context['request'].user
+        if not user.is_authenticated:
+            raise serializers.ValidationError("Vous devez être connecté pour accéder à cette ressource.")
+        participation = self.instance
+
+        # Si ce n’est pas l’admin et que ce n’est pas sa propre participation
+        if participation and not user.is_admin_user and participation.player.user != user:
+            raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
+        
+        
+        return data
+
+
