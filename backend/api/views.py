@@ -118,7 +118,7 @@ class PlayerListView(generics.ListAPIView):
     serializer_class = PlayerSerializer
     permission_classes = [RoleBasedAccess]
     admin_only = True
-
+    
     def get_queryset(self):
         return Player.objects.filter(user__is_approved=True)
 
@@ -271,7 +271,7 @@ class AvailableSeasonsView(APIView):
     def get(self, request):
         seasons = SeasonStats.objects.values_list("season_year", flat=True).distinct().order_by("-season_year")
         return Response(list(seasons))
-
+    
 class CreateSeasonStatsView(APIView):
     permission_classes = [IsAdminUser]
 
@@ -425,12 +425,12 @@ class UserUpdateView(generics.RetrieveUpdateDestroyAPIView):
     def get_serializer(self, *args, **kwargs):
         kwargs['partial'] = True
         return super().get_serializer(*args, **kwargs)
-
+    
     def perform_destroy(self, instance):
         if instance.is_superuser:
             raise PermissionError("Vous ne pouvez pas supprimer un utilisateur superadmin.")
         instance.delete()
-
+        
 class DeletePlayerAndUserView(APIView):
     permission_classes = [RoleBasedAccess]
     admin_only = True

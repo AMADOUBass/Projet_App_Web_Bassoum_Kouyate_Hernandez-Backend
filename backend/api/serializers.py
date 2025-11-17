@@ -229,6 +229,9 @@ class SeasonStatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SeasonStats
         fields = '__all__'
+        
+    def get_player_name(self, obj):
+        return obj.player.user.get_full_name() or obj.player.user.email
 
     def get_player_name(self, obj):
         return obj.player.user.get_full_name() or obj.player.user.email
