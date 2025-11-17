@@ -434,41 +434,41 @@ class EventSerializer(serializers.ModelSerializer):
 # ------------------------
 # Participation Serializer
 # ------------------------
-class ParticipationSerializer(serializers.ModelSerializer):
-    player_name = serializers.SerializerMethodField()
-    event = EventSerializer(read_only=True)
+# class ParticipationSerializer(serializers.ModelSerializer):
+#     player_name = serializers.SerializerMethodField()
+#     event = EventSerializer(read_only=True)
 
-    class Meta:
-        model = Participation
-        fields = [
-            'id',
-            'player',
-            'player_name',
-            'event', 
-            'will_attend',
-            'notified',
+#     class Meta:
+#         model = Participation
+#         fields = [
+#             'id',
+#             'player',
+#             'player_name',
+#             'event', 
+#             'will_attend',
+#             'notified',
              
-        ]
+#         ]
 
-        read_only_fields = ['player', 'event', 'player_name', 'event_title']
+#         read_only_fields = ['player', 'event', 'player_name', 'event_title']
 
-    def get_player_name(self, obj):
-        return obj.player.user.get_full_name() or obj.player.user.email
+#     def get_player_name(self, obj):
+#         return obj.player.user.get_full_name() or obj.player.user.email
 
-    def get_event_title(self, obj):
-        return obj.event.title
+#     def get_event_title(self, obj):
+#         return obj.event.title
 
-    def validate(self, data):
-        user = self.context['request'].user
-        if not user.is_authenticated:
-            raise serializers.ValidationError("Vous devez être connecté pour accéder à cette ressource.")
-        participation = self.instance
+#     def validate(self, data):
+#         user = self.context['request'].user
+#         if not user.is_authenticated:
+#             raise serializers.ValidationError("Vous devez être connecté pour accéder à cette ressource.")
+#         participation = self.instance
 
-        # Si ce n’est pas l’admin et que ce n’est pas sa propre participation
-        if participation and not user.is_admin_user and participation.player.user != user:
-            raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
+#         # Si ce n’est pas l’admin et que ce n’est pas sa propre participation
+#         if participation and not user.is_admin_user and participation.player.user != user:
+#             raise serializers.ValidationError("Vous ne pouvez modifier que votre propre participation.")
         
         
-        return data
+#         return data
 
 
