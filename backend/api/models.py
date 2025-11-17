@@ -162,8 +162,13 @@ class Participation(TimestampedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     player = models.ForeignKey('Player', on_delete=models.CASCADE)
     event = models.ForeignKey('Event', on_delete=models.CASCADE)
-    will_attend = models.BooleanField(default=False)  # Le joueur coche ce champ dans l'UI
+    will_attend = models.BooleanField(default=True)  # Le joueur coche ce champ dans l'UI
     notified = models.BooleanField(default=False)     # Pour savoir si le joueur a été informé
+    performance = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    cartonJaune = models.PositiveSmallIntegerField(default=0)
+    cartonRouge = models.PositiveSmallIntegerField(default=0)
+    buts = models.PositiveSmallIntegerField(default=0)
+    passe = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         verbose_name = 'Participation'

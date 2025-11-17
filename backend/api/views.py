@@ -24,6 +24,7 @@ from .serializers import (
     ReportAdminSerializer,
     EventSerializer,
     ApprovedUserSerializer,
+    ParticipationUpdateSerializer,
 )
 
 from .utils import approve_user
@@ -291,8 +292,8 @@ class EventParticipationView(generics.ListAPIView):
 
     def get_queryset(self):
         event_id = self.kwargs['event_id']
-        return Participation.objects.filter(event__id=event_id)
-
+        # select_related pour éviter les requêtes multiples
+        return Participation.objects.filter(event__id=event_id).select_related('player__user', 'event')
 
 class PlayerParticipationUpdateView(generics.UpdateAPIView):
     serializer_class = ParticipationSerializer
@@ -304,6 +305,12 @@ class PlayerParticipationUpdateView(generics.UpdateAPIView):
         if not user.is_authenticated:
             raise NotAuthenticated("Vous devez être connecté pour accéder à cette ressource.")
         return Participation.objects.filter(player__user=self.request.user)
+
+class AdminParticipationUpdateView(generics.UpdateAPIView):
+    serializer_class = ParticipationUpdateSerializer
+    permission_classes = [RoleBasedAccess]
+    admin_only = True
+    queryset = Participation.objects.all()
 
 class ReportAdminCreateView(generics.CreateAPIView):
     serializer_class = ReportAdminSerializer
@@ -328,7 +335,7 @@ class MyParticipationsView(generics.ListAPIView):
         return Participation.objects.filter(player__user=self.request.user)
 
 class EventListCreateView(generics.ListCreateAPIView):
-    queryset = Event.objects.filter(is_cancelled=False,date_event__gte=timezone.now())
+    queryset = Event.objects.filter().order_by("-date_event")
     serializer_class = EventSerializer
     permission_classes = [RoleBasedAccess]
 
@@ -414,7 +421,7 @@ class UserUpdateView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'pk'
     permission_classes = [RoleBasedAccess]
     admin_only = True
-    
+
     def get_serializer(self, *args, **kwargs):
         kwargs['partial'] = True
         return super().get_serializer(*args, **kwargs)
