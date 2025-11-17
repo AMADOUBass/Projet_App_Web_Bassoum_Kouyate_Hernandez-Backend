@@ -173,7 +173,7 @@ class PlayerSerializer(serializers.ModelSerializer):
             'id', 'user', 'position', 'team_name',
             'jersey_number', 'is_available','created_at','updated_at'
         ]
-    
+
 
 
 # ------------------------
@@ -273,6 +273,9 @@ class SeasonStatsSerializer(serializers.ModelSerializer):
     def get_player_name(self, obj):
         return obj.player.user.get_full_name() or obj.player.user.email
 
+    def get_player_name(self, obj):
+        return obj.player.user.get_full_name() or obj.player.user.email
+
 # ------------------------
 # ReportAdmin Serializer
 # ------------------------
@@ -300,10 +303,77 @@ class ReportAdminSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_by_admin', 'created_at', 'updated_at']
 
 # ------------------------
+# Participation Serializer
+# ------------------------
+class ParticipationSerializer(serializers.ModelSerializer):
+    player_name = serializers.SerializerMethodField()
+    player_position = serializers.SerializerMethodField()
+    player_number = serializers.SerializerMethodField()
+    event_title = serializers.SerializerMethodField()
+    event_date = serializers.SerializerMethodField()
+    event_type = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Participation
+        fields = [
+            'id',
+            'player',
+            'player_name',
+            'player_number',
+            'player_position',
+            'event_type',
+            'event',
+            'event_date',
+            'event_title',
+            'will_attend',
+            'notified',
+            'performance',
+            'cartonJaune',
+            'cartonRouge',
+            'buts',
+            'passe',
+        ]
+
+    def get_player_name(self, obj):
+        user = getattr(obj.player, 'user', None)
+        if user:
+            return user.get_full_name() or user.email
+        return str(obj.player)
+
+    def get_player_position(self, obj):
+        return getattr(obj.player, 'position', '')
+
+    def get_player_number(self, obj):
+        return getattr(obj.player, 'jersey_number', '')
+
+    def get_event_title(self, obj):
+        return obj.event.title if obj.event else ""
+
+    def get_event_date(self, obj):
+        return obj.event.date_event if obj.event else None
+
+    def get_event_type(self, obj):
+        return obj.event.event_type if obj.event else ""
+
+class ParticipationUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Participation
+        fields = [
+            'id',
+            'will_attend',
+            'notified',
+            'performance',
+            'cartonJaune',
+            'cartonRouge',
+            'buts',
+            'passe',
+        ]
+        read_only_fields = ['id']
+
+# ------------------------
 # Event Serializer
 # ------------------------
 class EventSerializer(serializers.ModelSerializer):
-    date_event = serializers.DateTimeField(format='%d %b %Y, %H:%M')
     class Meta:
         model = Event
         fields = [
@@ -345,14 +415,19 @@ class EventSerializer(serializers.ModelSerializer):
         """Création d'un événement"""
         event = Event.objects.create(**validated_data)
 
-        # Récupère tous les joueurs existants
+        # Récupère tous les joueurs existants pour les ajouter a la participation
         players = Player.objects.all()
         for player in players:
             Participation.objects.create(
                 player=player,
                 event=event,
-                will_attend=False,
-                notified=False
+                will_attend=True,
+                notified=True,
+                performance=0,
+                cartonJaune=0,
+                cartonRouge=0,
+                buts=0,
+                passe=0,
             )
         return event
     

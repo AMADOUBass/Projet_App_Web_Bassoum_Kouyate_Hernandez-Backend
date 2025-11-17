@@ -18,6 +18,9 @@ from .views import (
 
     #Event
     EventListCreateView, EventRetrieveUpdateDestroyView,
+
+    #Participation
+    AdminParticipationUpdateView,
 )
 router = DefaultRouter()
 router.register(r'admin/players', PlayerViewSet, basename='player')
@@ -70,5 +73,9 @@ urlpatterns = [
     path('events/', EventListCreateView.as_view(), name='event-list-create'),
     path('events/<uuid:pk>/', EventRetrieveUpdateDestroyView.as_view(), name='event-detail'),
 
+    # ------------------------
+    # 📅 Participations routes
+    # ------------------------
+    path('admin/participation/<uuid:pk>/update/', AdminParticipationUpdateView.as_view(), name='admin-participation-update'),
 
 ] + router.urls
