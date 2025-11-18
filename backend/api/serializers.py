@@ -63,6 +63,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_email(self, value):
+        value = value.strip().lower()
+        # Vérification du format de l'email
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Cet email est déjà utilisé.")
         return value
@@ -70,12 +72,13 @@ class RegisterSerializer(serializers.ModelSerializer):
     # def validate_role(self, value):
     #     if value not in ['player', 'admin']:
     #         raise serializers.ValidationError("Rôle invalide.")
-    #     return value
+    #     return valuee
 
     def create(self, validated_data):
-        email = validated_data['email']
+        email = validated_data['email'].strip().lower()
         password = validated_data['password']
-        validated_data.pop('role', None)  # Ignorer le rôle fourni
+        
+        # validated_data.pop('role', None)  # Ignorer le rôle fourni
         # Génération d'un nom d'utilisateur unique basé sur l'email
         username_base = email.split('@')[0]
         username = username_base
@@ -102,6 +105,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 # ------------------------
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # email = serializers.EmailField(required=True)
+    # password = serializers.CharField(write_only=True)
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
@@ -129,7 +134,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # ✅ Email existant
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email__iexact=email)
         except User.DoesNotExist as exc:
             print("❌ Email introuvable")
             raise serializers.ValidationError({"password": "Les identifiants sont invalides."}) from exc
