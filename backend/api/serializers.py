@@ -72,7 +72,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     # def validate_role(self, value):
     #     if value not in ['player', 'admin']:
     #         raise serializers.ValidationError("Rôle invalide.")
-    #     return value
+    #     return valuee
 
     def create(self, validated_data):
         email = validated_data['email'].strip().lower()
