@@ -6,7 +6,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated , IsAdminUser
 from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.exceptions import NotAuthenticated
@@ -304,9 +303,22 @@ class CreateSeasonStatsView(APIView):
     def post(self, request):
         serializer = SeasonStatsSerializer(data=request.data)
         if serializer.is_valid():
+            player = serializer.validated_data.get("player")
+            season_year = serializer.validated_data.get("season_year")
+
+            # ✅ Check if stats already exist for this player + season
+            if SeasonStats.objects.filter(player=player, season_year=season_year).exists():
+                return Response(
+                    {"detail": "Season stats already exist for this player and season."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Otherwise create new stats
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # ------------------------
 # Event Participation View (admin only)
@@ -472,3 +484,26 @@ class DeletePlayerAndUserView(APIView):
             return Response({"detail": "Joueur introuvable."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PlayersWithoutStatsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        season = request.query_params.get("season")
+
+        # All players
+        players = Player.objects.all()
+
+        # Exclude those who already have stats for this season
+        if season:
+            players = players.exclude(
+                id__in=SeasonStats.objects.filter(season_year=season).values("player_id")
+            )
+        else:
+            players = players.exclude(
+                id__in=SeasonStats.objects.values("player_id")
+            )
+
+        serializer = PlayerSerializer(players, many=True)
+        return Response(serializer.data)

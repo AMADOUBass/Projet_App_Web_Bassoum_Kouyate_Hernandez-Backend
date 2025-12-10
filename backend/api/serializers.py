@@ -19,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
     is_player = serializers.ReadOnlyField()
     is_admin_user = serializers.ReadOnlyField()
     role = serializers.ReadOnlyField()
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -26,11 +27,15 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'email', 'username', 'first_name', 'last_name',
             'password', 'role', 'phone_number', 'profile_picture',
             'bio', 'is_approved', 'is_player', 'is_admin_user',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'avatar_url'
         ]
         read_only_fields = ['id', 'role', 'is_player', 'is_admin_user', 'is_approved']
         extra_kwargs = {'password': {'write_only': True}, 'email': {'read_only': True}}
-
+    def get_avatar_url(self, obj):
+        if obj.profile_picture:
+            return obj.profile_picture.url
+        return f"https://api.dicebear.com/9.x/bottts/svg?seed={obj.id}"
+    
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         validated_data.pop('role', None)  # Ignorer le rôle fourni
@@ -278,8 +283,6 @@ class SeasonStatsSerializer(serializers.ModelSerializer):
     def get_player_name(self, obj):
         return obj.player.user.get_full_name() or obj.player.user.email
 
-    def get_player_name(self, obj):
-        return obj.player.user.get_full_name() or obj.player.user.email
 
 # ------------------------
 # ReportAdmin Serializer
