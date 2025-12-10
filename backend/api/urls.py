@@ -9,7 +9,7 @@ from .views import (
     UnapprovedUserListView, ApproveUserView,ApprovedUserListView,
     SeasonStatsAdminListView, SeasonStatsDetailView,
     EventParticipationView, ReportAdminCreateView, ReportAdminListView, TeamSeasonStatsView, AvailableSeasonsView,
-    CreateSeasonStatsView, DeletePlayerAndUserView,
+    CreateSeasonStatsView, DeletePlayerAndUserView,PlayersWithoutStatsView,
     # Player
     PlayerProfileView, PlayerParticipationUpdateView, MyParticipationsView,
     MySeasonStatsView,PlayerViewSet,UserUpdateView,
@@ -48,6 +48,7 @@ urlpatterns = [
     path('admin/available-seasons/', AvailableSeasonsView.as_view(), name='available_seasons'),
     path('admin/create-season-stats/', CreateSeasonStatsView.as_view(), name='create_season_stats'),
     path('admin/season-stats/<uuid:pk>/', SeasonStatsDetailView.as_view(), name='season_stats_detail'),
+    path('admin/players-without-stats/', PlayersWithoutStatsView.as_view(), name='players_without_stats'),
     path('admin/event/<uuid:event_id>/participations/', EventParticipationView.as_view(), name='event_participations'),
     path('admin/reports/', ReportAdminListView.as_view(), name='report_admin_list'),
     path('admin/reports/create/', ReportAdminCreateView.as_view(), name='report_admin_create'),

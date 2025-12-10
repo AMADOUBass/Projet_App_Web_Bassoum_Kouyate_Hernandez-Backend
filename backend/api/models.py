@@ -79,7 +79,12 @@ class User(AbstractUser, TimestampedModel):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = UserManager()
-
+    @property
+    def avatar_url(self):
+        if self.profile_picture:
+            return self.profile_picture.url
+        # fallback to DiceBear avatar based on UUID
+        return f"https://api.dicebear.com/9.x/bottts/svg?seed={self.id}"
     @property
     def is_player(self):
         return self.role == 'player'
@@ -197,6 +202,7 @@ class Event(TimestampedModel):
     date_event = models.DateTimeField()
     location = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    season_year = models.CharField(max_length=9)  # e.g., "2025-2026"
     opponent = models.CharField(max_length=255, null=True, blank=True)
     is_cancelled = models.BooleanField(default=False)
     participants = models.ManyToManyField('Player', through='Participation', related_name='events', blank=True)
